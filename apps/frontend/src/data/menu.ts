@@ -87,6 +87,29 @@ export interface ClienteCRM {
   Fecha_Registro: string;
 }
 
+export interface EstacionPrinter {
+  ID_Estacion: string;
+  Nombre: string; // Ej. Barra, Cocina Principal, Horno
+  Direccion_IP: string; // IP o MAC Bluetooth
+  Categorias: string[]; // Categorías que se imprimen en esta estación
+}
+
+export interface SuscripcionSaaS {
+  Plan: 'Base' | 'Premium';
+  PrecioMensual: number;
+  Estado: 'Activo' | 'Suspendido';
+  Tickets_Gratis_Restantes: number;
+}
+
+export interface TicketSoporte {
+  ID_Ticket: string;
+  Fecha: string;
+  Asunto: string;
+  Estado: 'Abierto' | 'En Progreso' | 'Resuelto';
+  Costo: number;
+  Facturado: boolean;
+}
+
 export const menuItems: MenuItem[] = [
   {
     ID_Plato: 'P001',
@@ -265,5 +288,23 @@ export const clientesCRM: ClienteCRM[] = [
   { ID_Cliente: 'C004', Nombre: 'Roberto Hernández', Email: 'roberto.h@email.com', Telefono: '+52 55 1357 2468', Preferencias: 'Comida ligera', Historial_Pedidos: 'P001, P007, P004', Fecha_Registro: '2026-04-05' },
   { ID_Cliente: 'C005', Nombre: 'Sofía Ramírez', Email: 'sofia.ram@email.com', Telefono: '+52 55 9876 5432', Preferencias: 'Todo tipo, Frecuente', Historial_Pedidos: 'P003, P005, P009, P002', Fecha_Registro: '2026-05-18' },
 ];
+
+export const estacionesMock: EstacionPrinter[] = [
+  { ID_Estacion: 'EST-001', Nombre: 'Barra', Direccion_IP: '192.168.1.101', Categorias: ['Bebidas'] },
+  { ID_Estacion: 'EST-002', Nombre: 'Cocina Principal', Direccion_IP: '192.168.1.102', Categorias: ['Platos Fuertes', 'Entradas'] },
+  { ID_Estacion: 'EST-003', Nombre: 'Reposteria', Direccion_IP: '192.168.1.103', Categorias: ['Postres'] },
+];
+
+export const suscripcionMock: SuscripcionSaaS = {
+  Plan: 'Base',
+  PrecioMensual: 29.99,
+  Estado: 'Activo',
+  Tickets_Gratis_Restantes: 3,
+};
+
+export const ticketsSoporteMock: TicketSoporte[] = [
+  { ID_Ticket: 'TK-1001', Fecha: '2026-05-10', Asunto: 'Onboarding y Setup Inicial', Estado: 'Resuelto', Costo: 0, Facturado: true },
+];
+
 
 export const categories = ['Todas', 'Entradas', 'Platos Fuertes', 'Bebidas', 'Postres'] as const;

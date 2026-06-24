@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { MenuItem, Ingrediente, almacen as initialAlmacen, recetas, ventasLog as initialVentasLog, VentaLog, StockCocina, RegistroMerma, MovimientoInventario, inventarioCocinaMock, registroMermasMock, movimientosLogMock } from '@/data/menu';
+import { MenuItem, Ingrediente, almacen as initialAlmacen, recetas, ventasLog as initialVentasLog, VentaLog, StockCocina, RegistroMerma, MovimientoInventario, inventarioCocinaMock, registroMermasMock, movimientosLogMock, EstacionPrinter, SuscripcionSaaS, TicketSoporte, estacionesMock, suscripcionMock, ticketsSoporteMock } from '@/data/menu';
 
 export type OrderStatus = 'PENDIENTE' | 'EN_PREPARACION' | 'LISTO' | 'ENTREGADO' | 'CANCELADO';
 
@@ -19,7 +19,7 @@ export interface Order {
   customerName?: string;
 }
 
-export type AppView = 'menu' | 'kitchen' | 'pos' | 'inventory' | 'crm' | 'admin' | 'auth' | 'miseenplace';
+export type AppView = 'menu' | 'kitchen' | 'pos' | 'inventory' | 'crm' | 'admin' | 'auth' | 'miseenplace' | 'saas' | 'onboarding';
 export type UserRole = 'cliente' | 'cocinero' | 'cajero' | 'admin';
 
 interface AppState {
@@ -76,6 +76,16 @@ interface AppState {
   toggleCart: () => void;
   selectedCategory: string;
   setSelectedCategory: (cat: string) => void;
+
+  // Enrutamiento / Estaciones
+  estaciones: EstacionPrinter[];
+  updateEstacion: (estacion: EstacionPrinter) => void;
+
+  // SaaS y Soporte
+  suscripcionSaaS: SuscripcionSaaS;
+  ticketsSoporte: TicketSoporte[];
+  crearTicketSoporte: (asunto: string) => void;
+  actualizarSuscripcion: (plan: 'Base' | 'Premium') => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -343,4 +353,44 @@ export const useStore = create<AppState>((set, get) => ({
   toggleCart: () => set((state) => ({ showCart: !state.showCart })),
   selectedCategory: 'Todas',
   setSelectedCategory: (cat) => set({ selectedCategory: cat }),
+
+  estaciones: estacionesMock,
+  updateEstacion: (updatedEstacion) => set(state => ({
+    estaciones: state.estaciones.map(est => est.ID_Estacion === updatedEstacion.ID_Estacion ? updatedEstacion : est)
+  })),
+
+  suscripcionSaaS: suscripcionMock,
+  ticketsSoporte: ticketsSoporteMock,
+  
+  crearTicketSoporte: (asunto) => set(state => {
+    let costo = 0;
+    if (state.suscripcionSaaS.Plan === 'Base' && state.suscripcionSaaS.Tickets_Gratis_Restantes <= 0) {
+      costo = 15; // Costo por evento
+    }
+    
+    const nuevoTicket: TicketSoporte = {
+      ID_Ticket: `TK-${Date.now()}`,
+      Fecha: new Date().toISOString().split('T')[0],
+      Asunto,
+      Estado: 'Abierto',
+      Costo: costo,
+      Facturado: false
+    };
+
+    return {
+      ticketsSoporte: [nuevoTicket, ...state.ticketsSoporte],
+      suscripcionSaaS: {
+        ...state.suscripcionSaaS,
+        Tickets_Gratis_Restantes: Math.max(0, state.suscripcionSaaS.Tickets_Gratis_Restantes - 1)
+      }
+    };
+  }),
+
+  actualizarSuscripcion: (plan) => set(state => ({
+    suscripcionSaaS: {
+      ...state.suscripcionSaaS,
+      Plan: plan,
+      PrecioMensual: plan === 'Premium' ? 49.99 : 29.99
+    }
+  })),
 }));

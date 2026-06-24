@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useStore, OrderStatus } from '@/stores/useStore';
 import { ChefHat, Clock, CheckCircle2, Truck, XCircle, Timer, Flame } from 'lucide-react';
 
@@ -24,10 +25,29 @@ function getTimeSince(timestamp: string): string {
 }
 
 export function KitchenView() {
-  const { orders, updateOrderStatus } = useStore();
+  const { orders, updateOrderStatus, estaciones } = useStore();
+  const [selectedEstacionId, setSelectedEstacionId] = useState<string>('all');
   
-  const activeOrders = orders.filter(o => o.status !== 'ENTREGADO' && o.status !== 'CANCELADO');
-  const completedOrders = orders.filter(o => o.status === 'ENTREGADO');
+  const selectedEstacion = estaciones.find(e => e.ID_Estacion === selectedEstacionId);
+  
+  // Filtrar comandas según la estación seleccionada
+  const processOrders = (ordersList: typeof orders) => {
+    return ordersList
+      .map(order => {
+        // Si hay una estación seleccionada, filtramos los ítems de la orden
+        if (selectedEstacion) {
+          const filteredItems = order.items.filter(item => 
+            selectedEstacion.Categorias.includes(item.dish.Categoria)
+          );
+          return { ...order, items: filteredItems };
+        }
+        return order;
+      })
+      .filter(order => order.items.length > 0); // Solo mantener órdenes que tengan ítems para esta estación
+  };
+
+  const activeOrders = processOrders(orders.filter(o => o.status !== 'ENTREGADO' && o.status !== 'CANCELADO'));
+  const completedOrders = processOrders(orders.filter(o => o.status === 'ENTREGADO'));
   
   return (
     <div className="min-h-screen bg-slate-950 p-4">
@@ -38,13 +58,27 @@ export function KitchenView() {
             <ChefHat className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-black text-white">Panel de Cocina</h2>
+            <h2 className="text-xl font-black text-white">Panel de Producción</h2>
             <p className="text-xs text-slate-400">Comandas en tiempo real • {activeOrders.length} activas</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium">
-          <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse" />
-          En Vivo
+        <div className="flex items-center gap-4">
+          <select
+            value={selectedEstacionId}
+            onChange={(e) => setSelectedEstacionId(e.target.value)}
+            className="bg-slate-800 text-slate-200 border border-slate-700 text-sm rounded-lg focus:ring-primary focus:border-primary block p-2"
+          >
+            <option value="all">🌐 Todas las estaciones</option>
+            {estaciones.map(est => (
+              <option key={est.ID_Estacion} value={est.ID_Estacion}>
+                🖨️ {est.Nombre} (IP: {est.Direccion_IP})
+              </option>
+            ))}
+          </select>
+          <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium">
+            <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse" />
+            En Vivo
+          </div>
         </div>
       </div>
 

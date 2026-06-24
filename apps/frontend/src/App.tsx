@@ -8,7 +8,9 @@ import { POSView } from '@/features/pos/POSView';
 import { InventoryView } from '@/features/inventory/InventoryView';
 import { CRMView } from '@/features/crm/CRMView';
 import { AdminView } from '@/features/admin/AdminView';
+import { SaaSAdminView } from '@/features/admin/SaaSAdminView';
 import { AdminAuthView } from '@/features/auth/AdminAuthView';
+import { OnboardingView } from '@/features/crm/OnboardingView';
 
 function App() {
   const { currentView } = useStore();
@@ -21,7 +23,9 @@ function App() {
       case 'pos': return <POSView />;
       case 'inventory': return <InventoryView />;
       case 'crm': return <CRMView />;
+      case 'onboarding': return <OnboardingView />;
       case 'admin': return <AdminView />;
+      case 'saas': return <SaaSAdminView />;
       case 'auth': return <AdminAuthView />;
       default: return <MenuView />;
     }

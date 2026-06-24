@@ -1,7 +1,7 @@
 import { useStore, AppView, UserRole } from '@/stores/useStore';
 import { 
   UtensilsCrossed, ChefHat, CreditCard, Package, Users, Settings,
-  QrCode, ShieldCheck, UserPlus, Scissors
+  QrCode, ShieldCheck, UserPlus, Scissors, Building2, Network
 } from 'lucide-react';
 
 const roleViews: Record<UserRole, { view: AppView; label: string; icon: React.ReactNode }[]> = {
@@ -23,6 +23,8 @@ const roleViews: Record<UserRole, { view: AppView; label: string; icon: React.Re
     { view: 'pos', label: 'POS', icon: <CreditCard className="w-5 h-5" /> },
     { view: 'inventory', label: 'Inventario', icon: <Package className="w-5 h-5" /> },
     { view: 'crm', label: 'CRM', icon: <Users className="w-5 h-5" /> },
+    { view: 'onboarding', label: 'Setup', icon: <Network className="w-5 h-5" /> },
+    { view: 'saas', label: 'Suscripción', icon: <Building2 className="w-5 h-5" /> },
     { view: 'auth', label: 'Usuarios', icon: <UserPlus className="w-5 h-5" /> },
     { view: 'admin', label: 'Admin', icon: <Settings className="w-5 h-5" /> },
   ],
