@@ -6,7 +6,7 @@ import { PaymentGateway } from '../checkout/PaymentGateway';
 type CheckoutStep = 'CART' | 'TIP' | 'PAYMENT' | 'SUCCESS';
 
 export function CartDrawer() {
-  const { cart, updateQuantity, clearCart, toggleCart, addOrder, currentMesa, deductInventory } = useStore();
+  const { cart, updateQuantity, clearCart, toggleCart, addOrder, addTransaction, currentMesa, deductInventory } = useStore();
   const [step, setStep] = useState<CheckoutStep>('CART');
   const [customerName, setCustomerName] = useState('');
   const [tipPercentage, setTipPercentage] = useState<number>(0);
@@ -16,19 +16,22 @@ export function CartDrawer() {
   const tipAmount = subtotal * (tipPercentage / 100);
   const grandTotal = subtotal + tax + tipAmount;
   
-  const handleFinalizeOrder = (paymentMethod: 'EFECTIVO' | 'TARJETA' | 'MIXTO', paymentStatus: 'PENDIENTE' | 'PAGADO') => {
+  const handleFinalizeOrder = (paymentMethod: 'EFECTIVO' | 'TARJETA' | 'APPLE_PAY' | 'GOOGLE_PAY' | 'MIXTO', paymentStatus: 'PENDIENTE' | 'PAGADO') => {
     if (cart.length === 0) return;
     
-    addOrder({
+    const orderId = addOrder({
       mesa: currentMesa,
       items: [...cart],
       status: 'PENDIENTE',
       paymentStatus: paymentStatus,
-      paymentMethod: paymentMethod,
       tip: tipAmount,
       total: grandTotal,
       customerName: customerName || undefined,
     });
+    
+    if (paymentStatus === 'PAGADO') {
+      addTransaction(orderId, grandTotal, paymentMethod, tipAmount);
+    }
     
     cart.forEach(item => {
       deductInventory(item.dish.ID_Plato, item.quantity);
@@ -43,12 +46,12 @@ export function CartDrawer() {
   };
   
   return (
-    <div className="fixed inset-0 z-50">
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onClick={() => step === 'CART' && toggleCart()} />
+    <>
+      {/* Mobile Overlay */}
+      <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden transition-opacity" onClick={() => step === 'CART' && toggleCart()} />
       
-      {/* Drawer */}
-      <div className="absolute bottom-0 left-0 right-0 bg-slate-900 rounded-t-3xl max-h-[90vh] flex flex-col animate-slide-up border-t border-primary shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+      {/* Drawer Container */}
+      <div className="fixed z-50 bottom-0 left-0 right-0 lg:bottom-0 lg:top-0 lg:left-auto lg:right-0 lg:w-[400px] bg-slate-900 rounded-t-3xl lg:rounded-none lg:border-l border-slate-700/50 max-h-[90vh] lg:max-h-screen flex flex-col animate-slide-up lg:animate-slide-left border-t lg:border-t-0 border-primary shadow-[0_-10px_40px_rgba(0,0,0,0.5)] lg:shadow-[-10px_0_40px_rgba(0,0,0,0.5)]">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
           <div className="flex items-center gap-3">
@@ -254,6 +257,6 @@ export function CartDrawer() {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

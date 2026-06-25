@@ -9,13 +9,22 @@ export interface CartItem {
   notes?: string;
 }
 
+export interface Transaction {
+  id: string;
+  amount: number;
+  method: 'EFECTIVO' | 'TARJETA' | 'APPLE_PAY' | 'GOOGLE_PAY' | 'MIXTO';
+  tip?: number;
+  timestamp: string;
+}
+
 export interface Order {
   id: string;
   mesa: number;
   items: CartItem[];
   status: OrderStatus;
   paymentStatus: 'PENDIENTE' | 'PAGADO' | 'PAGADO_PARCIAL';
-  paymentMethod?: 'EFECTIVO' | 'TARJETA' | 'MIXTO';
+  transactions: Transaction[];
+  balanceDue: number;
   tip?: number;
   timestamp: string;
   total: number;
@@ -48,8 +57,9 @@ interface AppState {
   
   // Orders
   orders: Order[];
-  addOrder: (order: Omit<Order, 'id' | 'timestamp'>) => void;
+  addOrder: (order: Omit<Order, 'id' | 'timestamp' | 'transactions' | 'balanceDue'>) => string;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
+  addTransaction: (orderId: string, amount: number, method: Transaction['method'], tip?: number) => void;
   
   // Inventory (simulated real-time)
   almacen: Ingrediente[];
@@ -138,6 +148,8 @@ export const useStore = create<AppState>((set, get) => ({
       items: [{ dish: { ID_Plato: 'P003', Nombre_Plato: 'Filete Angus a la Parrilla', Precio: 28.50, Categoria: 'Platos Fuertes', Activo: true, Foto_URL: '', Descripcion: '', Tiempo_Preparacion: '25 min' }, quantity: 2 }],
       status: 'EN_PREPARACION',
       paymentStatus: 'PENDIENTE',
+      transactions: [],
+      balanceDue: 57.00,
       timestamp: new Date(Date.now() - 600000).toISOString(),
       total: 57.00,
     },
@@ -150,6 +162,8 @@ export const useStore = create<AppState>((set, get) => ({
       ],
       status: 'PENDIENTE',
       paymentStatus: 'PENDIENTE',
+      transactions: [],
+      balanceDue: 20.00,
       timestamp: new Date(Date.now() - 120000).toISOString(),
       total: 20.00,
     },
@@ -159,25 +173,61 @@ export const useStore = create<AppState>((set, get) => ({
       items: [{ dish: { ID_Plato: 'P009', Nombre_Plato: 'Risotto de Hongos Silvestres', Precio: 18.50, Categoria: 'Platos Fuertes', Activo: true, Foto_URL: '', Descripcion: '', Tiempo_Preparacion: '22 min' }, quantity: 1 }],
       status: 'LISTO',
       paymentStatus: 'PENDIENTE',
+      transactions: [],
+      balanceDue: 18.50,
       timestamp: new Date(Date.now() - 900000).toISOString(),
       total: 18.50,
     },
   ],
-  addOrder: (order) => set((state) => {
-    const id = `ORD-${String(state.orders.length + 1).padStart(3, '0')}`;
-    const newOrder: Order = {
-      ...order,
-      id,
-      paymentStatus: order.paymentStatus || 'PENDIENTE',
-      timestamp: new Date().toISOString(),
-    };
-    return { orders: [...state.orders, newOrder] };
-  }),
+  addOrder: (order) => {
+    let newId = '';
+    set((state) => {
+      newId = `ORD-${String(state.orders.length + 1).padStart(3, '0')}`;
+      const newOrder: Order = {
+        ...order,
+        id: newId,
+        paymentStatus: order.paymentStatus || 'PENDIENTE',
+        transactions: [],
+        balanceDue: order.total,
+        timestamp: new Date().toISOString(),
+      };
+      return { orders: [...state.orders, newOrder] };
+    });
+    return newId;
+  },
   updateOrderStatus: (orderId, status) => set((state) => ({
     orders: state.orders.map(order =>
       order.id === orderId ? { ...order, status } : order
     ),
   })),
+  addTransaction: (orderId, amount, method, tip) => set((state) => {
+    const order = state.orders.find(o => o.id === orderId);
+    if (!order) return state;
+
+    const newBalance = Math.max(0, order.balanceDue - amount);
+    const newPaymentStatus = newBalance <= 0 ? 'PAGADO' : 'PAGADO_PARCIAL';
+
+    const transaction: Transaction = {
+      id: `TXN-${Date.now()}`,
+      amount,
+      method,
+      tip,
+      timestamp: new Date().toISOString(),
+    };
+
+    return {
+      orders: state.orders.map(o => 
+        o.id === orderId 
+          ? { 
+              ...o, 
+              balanceDue: newBalance, 
+              paymentStatus: newPaymentStatus,
+              transactions: [...o.transactions, transaction] 
+            } 
+          : o
+      )
+    };
+  }),
   
   almacen: initialAlmacen,
   deductInventory: (platoId, cantidad) => set((state) => {

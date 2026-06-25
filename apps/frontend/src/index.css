@@ -103,3 +103,26 @@ select option {
   background-color: var(--color-surface);
   color: var(--color-on-surface);
 }
+
+/* Print Ticket Styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-receipt, .print-receipt * {
+    visibility: visible;
+  }
+  .print-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    background: white !important;
+    color: black !important;
+  }
+  .print-receipt-text {
+    color: black !important;
+  }
+}

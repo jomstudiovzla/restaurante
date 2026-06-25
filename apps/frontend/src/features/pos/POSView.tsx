@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useStore, Order } from '@/stores/useStore';
 import { CreditCard, DollarSign, Receipt, TrendingUp, Clock, Users, CheckCircle, Printer, ArrowUpRight, Banknote, SplitSquareHorizontal } from 'lucide-react';
+import { PaymentGateway } from '../checkout/PaymentGateway';
+import { SplitBillModal } from './SplitBillModal';
 
 export function POSView() {
-  const { orders, ventasLog, updateOrderStatus } = useStore();
+  const { orders, ventasLog, updateOrderStatus, addTransaction } = useStore();
   const [tableFilter, setTableFilter] = useState<'Todas' | 'Ocupadas' | 'Libres'>('Todas');
   
   // Pending payments (orders that have not been paid yet)
@@ -32,16 +34,81 @@ export function POSView() {
     };
   });
 
-  const handlePayment = (orderId: string, method: 'EFECTIVO' | 'TARJETA') => {
-    // In a real app we would update the paymentStatus and method
-    // For this prototype, we'll map through the store. We need an updateOrder method, but we can use updateOrderStatus as a hack if needed, or better, we can add updateOrderPayment in the store.
-    // Since we can't edit useStore easily from here without another pass, let's just mark it ENTREGADO for now to remove it, or use a custom event.
-    // Actually, we'll use a hack to update the order object directly if the store doesn't provide a method, wait no, zustand state is immutable.
-    alert(`Cobro procesado con ${method} para la orden ${orderId}`);
+  const [splitOrder, setSplitOrder] = useState<Order | null>(null);
+  const [paymentOrder, setPaymentOrder] = useState<{order: Order, amount: number} | null>(null);
+
+  const handlePaymentClick = (order: Order, amount: number) => {
+    setPaymentOrder({ order, amount });
+  };
+  
+  const [printOrder, setPrintOrder] = useState<Order | null>(null);
+
+  const handlePrintTicket = (order: Order) => {
+    setPrintOrder(order);
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
   
   return (
     <div className="min-h-screen bg-slate-950 p-4 pb-24">
+      {/* Print Receipt Section */}
+      {printOrder && (
+        <div className="print-receipt hidden">
+          <div className="font-mono text-sm max-w-sm mx-auto bg-white text-black p-4">
+            <div className="text-center mb-4">
+              <h1 className="text-xl font-bold">ANTIGRAVITY RESTO</h1>
+              <p className="text-xs">123 Culinary Ave, Food City</p>
+              <p className="text-xs">Tel: (555) 123-4567</p>
+              <div className="border-b-2 border-black border-dashed my-2"></div>
+            </div>
+            
+            <div className="mb-4 text-xs">
+              <p>Mesa: {printOrder.mesa}</p>
+              <p>Orden: {printOrder.id}</p>
+              <p>Fecha: {new Date(printOrder.timestamp).toLocaleString()}</p>
+              {printOrder.customerName && <p>Cliente: {printOrder.customerName}</p>}
+              <div className="border-b-2 border-black border-dashed my-2"></div>
+            </div>
+
+            <div className="mb-4">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-black">
+                    <th className="text-left py-1">Cant</th>
+                    <th className="text-left py-1">Item</th>
+                    <th className="text-right py-1">Precio</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {printOrder.items.map((item, i) => (
+                    <tr key={i}>
+                      <td className="py-1 align-top">{item.quantity}</td>
+                      <td className="py-1">{item.dish.Nombre_Plato}</td>
+                      <td className="py-1 text-right">${(item.dish.Precio * item.quantity).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="border-b-2 border-black border-dashed my-2"></div>
+            </div>
+
+            <div className="text-right text-xs space-y-1 font-bold">
+              <p>Subtotal: ${(printOrder.total - (printOrder.tip || 0)).toFixed(2)}</p>
+              <p>Propina: ${(printOrder.tip || 0).toFixed(2)}</p>
+              <p className="text-sm mt-1">TOTAL: ${printOrder.total.toFixed(2)}</p>
+              <div className="border-b-2 border-black border-dashed my-2"></div>
+              <p className="text-sm mt-1">RESTA: ${printOrder.balanceDue.toFixed(2)}</p>
+            </div>
+
+            <div className="text-center mt-6 text-xs">
+              <p>¡Gracias por su visita!</p>
+              <p>Powered by Antigravity</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -235,24 +302,21 @@ export function POSView() {
               
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button 
-                  onClick={() => handlePayment(order.id, 'EFECTIVO')}
-                  className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 active:scale-95"
+                  onClick={() => handlePaymentClick(order, order.balanceDue)}
+                  className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 active:scale-95 col-span-2"
                 >
                   <Banknote className="w-4 h-4" />
-                  Efectivo
+                  Cobrar Total
                 </button>
                 <button 
-                  onClick={() => handlePayment(order.id, 'TARJETA')}
-                  className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 active:scale-95"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  Tarjeta
-                </button>
-                <button className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 active:scale-95">
+                  onClick={() => setSplitOrder(order)}
+                  className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 active:scale-95">
                   <SplitSquareHorizontal className="w-4 h-4 text-slate-400" />
                   Dividir
                 </button>
-                <button className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 active:scale-95 border border-slate-700">
+                <button 
+                  onClick={() => handlePrintTicket(order)}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 active:scale-95 border border-slate-700">
                   <Printer className="w-4 h-4" />
                   Ticket
                 </button>
@@ -261,6 +325,34 @@ export function POSView() {
           ))
         )}
       </div>
+
+      {/* Modals */}
+      {splitOrder && (
+        <SplitBillModal
+          order={splitOrder}
+          onClose={() => setSplitOrder(null)}
+          onPayPart={(amount) => {
+            setSplitOrder(null);
+            handlePaymentClick(splitOrder, amount);
+          }}
+        />
+      )}
+
+      {paymentOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setPaymentOrder(null)} />
+          <div className="relative w-full max-w-md animate-scale-up">
+            <PaymentGateway
+              total={paymentOrder.amount}
+              onSuccess={(method) => {
+                addTransaction(paymentOrder.order.id, paymentOrder.amount, method);
+                setPaymentOrder(null);
+              }}
+              onCancel={() => setPaymentOrder(null)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
