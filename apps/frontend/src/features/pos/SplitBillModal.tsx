@@ -30,7 +30,7 @@ export function SplitBillModal({ order, onClose, onPayPart }: SplitBillModalProp
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative bg-slate-900 border border-slate-700 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-scale-up">
+      <div className="relative bg-slate-900 border border-slate-700 w-full min-w-[320px] sm:min-w-[400px] max-w-md shrink-0 rounded-3xl overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-800">
           <h3 className="text-xl font-black text-white flex items-center gap-2">

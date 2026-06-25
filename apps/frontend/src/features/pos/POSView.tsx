@@ -341,7 +341,7 @@ export function POSView() {
       {paymentOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setPaymentOrder(null)} />
-          <div className="relative w-full max-w-md animate-scale-up">
+          <div className="relative w-full min-w-[320px] sm:min-w-[400px] max-w-md shrink-0">
             <PaymentGateway
               total={paymentOrder.amount}
               onSuccess={(method) => {
