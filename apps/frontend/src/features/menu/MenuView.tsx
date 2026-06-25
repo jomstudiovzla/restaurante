@@ -28,7 +28,10 @@ export function MenuView() {
     'Entradas': '🥗',
     'Platos Fuertes': '🥩',
     'Bebidas': '🍹',
-    'Postres':  return (
+    'Postres': '🍰',
+  };
+
+  return (
     <div className="min-h-screen bg-slate-950 flex flex-col transition-all duration-300">
       <div className={`flex-1 transition-all duration-300 pb-40 ${showCart ? 'lg:pr-[400px]' : ''}`}>
         {/* Hero Section */}
