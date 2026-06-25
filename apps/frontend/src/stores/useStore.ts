@@ -14,6 +14,9 @@ export interface Order {
   mesa: number;
   items: CartItem[];
   status: OrderStatus;
+  paymentStatus: 'PENDIENTE' | 'PAGADO' | 'PAGADO_PARCIAL';
+  paymentMethod?: 'EFECTIVO' | 'TARJETA' | 'MIXTO';
+  tip?: number;
   timestamp: string;
   total: number;
   customerName?: string;
@@ -134,6 +137,7 @@ export const useStore = create<AppState>((set, get) => ({
       mesa: 7,
       items: [{ dish: { ID_Plato: 'P003', Nombre_Plato: 'Filete Angus a la Parrilla', Precio: 28.50, Categoria: 'Platos Fuertes', Activo: true, Foto_URL: '', Descripcion: '', Tiempo_Preparacion: '25 min' }, quantity: 2 }],
       status: 'EN_PREPARACION',
+      paymentStatus: 'PENDIENTE',
       timestamp: new Date(Date.now() - 600000).toISOString(),
       total: 57.00,
     },
@@ -145,6 +149,7 @@ export const useStore = create<AppState>((set, get) => ({
         { dish: { ID_Plato: 'P007', Nombre_Plato: 'Limonada de la Casa', Precio: 4.00, Categoria: 'Bebidas', Activo: true, Foto_URL: '', Descripcion: '', Tiempo_Preparacion: '5 min' }, quantity: 2 },
       ],
       status: 'PENDIENTE',
+      paymentStatus: 'PENDIENTE',
       timestamp: new Date(Date.now() - 120000).toISOString(),
       total: 20.00,
     },
@@ -153,6 +158,7 @@ export const useStore = create<AppState>((set, get) => ({
       mesa: 5,
       items: [{ dish: { ID_Plato: 'P009', Nombre_Plato: 'Risotto de Hongos Silvestres', Precio: 18.50, Categoria: 'Platos Fuertes', Activo: true, Foto_URL: '', Descripcion: '', Tiempo_Preparacion: '22 min' }, quantity: 1 }],
       status: 'LISTO',
+      paymentStatus: 'PENDIENTE',
       timestamp: new Date(Date.now() - 900000).toISOString(),
       total: 18.50,
     },
@@ -162,6 +168,7 @@ export const useStore = create<AppState>((set, get) => ({
     const newOrder: Order = {
       ...order,
       id,
+      paymentStatus: order.paymentStatus || 'PENDIENTE',
       timestamp: new Date().toISOString(),
     };
     return { orders: [...state.orders, newOrder] };
