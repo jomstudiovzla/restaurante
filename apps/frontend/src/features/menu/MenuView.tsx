@@ -189,37 +189,26 @@ export function MenuView() {
         </div>
       </div>
 
-      {/* Fixed Bottom Container for Banner and Floating Cart Button (Hidden if cart is open on desktop) */}
-      <div className={`fixed bottom-4 left-4 right-4 z-30 flex flex-col items-center gap-3 pointer-events-none transition-all duration-300 ${showCart ? 'lg:right-[416px]' : ''}`}>
-        {/* Suggestion banner */}
-        {cartCount > 0 && cartCount < 3 && (
-          <div className="pointer-events-auto bg-slate-800/95 backdrop-blur rounded-xl border border-primary/20 p-3 flex items-center gap-3 shadow-xl max-w-lg mx-auto w-full lg:max-w-md">
-            <Star className="w-5 h-5 text-primary shrink-0" />
-            <p className="text-xs text-slate-300">
-              <span className="text-primary font-semibold">¿Quieres completar tu experiencia?</span> Agrega una bebida o postre.
-            </p>
-          </div>
-        )}
-
-        {/* Floating cart button (Hides completely on desktop if sidebar is open) */}
-        {cartCount > 0 && (
-          <button
-            onClick={toggleCart}
-            className={`pointer-events-auto w-full max-w-lg mx-auto bg-primary hover:bg-primary/90 text-on-primary rounded-2xl py-4 px-6 flex items-center justify-between font-bold shadow-2xl shadow-primary/20 active:scale-[0.98] transition-all ${showCart ? 'lg:hidden' : ''}`}
-          >
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <ShoppingCart className="w-6 h-6" />
-                <span className="absolute -top-2 -right-2 bg-slate-900 text-primary text-xs w-5 h-5 rounded-full flex items-center justify-center font-black">
-                  {cartCount}
-                </span>
-              </div>
-              <span>Ver Pedido</span>
+      {/* Floating Cart Button */}
+      {cartCount > 0 && (
+        <div 
+          onClick={toggleCart}
+          className={`fixed bottom-6 z-30 pointer-events-auto transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.4)] shadow-primary/30 bg-primary hover:bg-primary/90 text-on-primary rounded-full px-6 py-4 flex items-center justify-between gap-4 cursor-pointer active:scale-95 border border-primary/50 ${
+            showCart ? 'hidden' : 'left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md lg:left-auto lg:right-8 lg:-translate-x-0 lg:w-auto lg:min-w-[300px]'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="relative shrink-0">
+              <ShoppingCart className="w-6 h-6" />
+              <span className="absolute -top-2 -right-2 bg-slate-900 text-primary text-xs w-5 h-5 rounded-full flex items-center justify-center font-black">
+                {cartCount}
+              </span>
             </div>
-            <span className="text-lg">${cartTotal.toFixed(2)}</span>
-          </button>
-        )}
-      </div>
+            <span className="font-bold text-lg whitespace-nowrap">Ver Pedido</span>
+          </div>
+          <span className="font-black text-xl whitespace-nowrap">${cartTotal.toFixed(2)}</span>
+        </div>
+      )}
 
       {/* Cart Drawer */}
       {showCart && <CartDrawer />}
